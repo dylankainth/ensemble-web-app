@@ -12,7 +12,7 @@ const MAC_ADDRESSES = [
    
 ];
 
-const MQTT_BROKER_URL = "ws://srv1.ensemble.rodeo:9001";
+const MQTT_BROKER_URL = "wss://srv1.ensemble.rodeo:9001";
 const MQTT_TOPIC = "esp32/nfc";
 
 export default function BadgePage() {
