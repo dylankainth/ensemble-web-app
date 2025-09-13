@@ -5,7 +5,10 @@ import AppBar from '@/components/AppBar';
 const Layout: React.FC = () => {
     return (
         <div>
+            <div className="pb-16">
             <Outlet />
+            </div>
+            
             <AppBar />
         </div>
     );
