@@ -7,6 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import type { MqttClient } from "mqtt";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 
@@ -351,22 +357,22 @@ export default function BadgePage() {
                     </div>
 
                     <div className="space-y-1">
-                        <Label htmlFor="mac">Select a flasher</Label>
-                        <select
-                            id="mac"
-                            value={mac}
-                            onChange={(e) => setMac(e.target.value)}
-                            className="block w-full px-3 py-2 border border-gray-300 rounded"
-                        >
-                            <option value="" disabled>
-                                Select MAC address
-                            </option>
+                        <Label>Select a flasher</Label>
+                        <div className="space-y-2 max-h-48 overflow-y-auto">
                             {MAC_ADDRESSES.map((addr) => (
-                                <option key={addr} value={addr}>
-                                    {addr.split(":").slice(-3).join(":")}
-                                </option>
+                                <div
+                                    key={addr}
+                                    className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
+                                        mac === addr
+                                            ? 'border-blue-500 bg-blue-50'
+                                            : 'border-gray-300 hover:border-gray-400'
+                                    }`}
+                                    onClick={() => setMac(addr)}
+                                >
+                                    <div className="font-medium text-sm">{addr.split(":").slice(-3).join(":")}</div>
+                                </div>
                             ))}
-                        </select>
+                        </div>
                     </div>
 
                     <div className="flex space-x-2">
