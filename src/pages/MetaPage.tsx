@@ -15,6 +15,8 @@ export default function MetaPage() {
     const [loading, setLoading] = useState<boolean>(true)
     const [saving, setSaving] = useState<boolean>(false)
     const [pageNotFound, setPageNotFound] = useState<boolean>(false)
+    const [ownerUserId, setOwnerUserId] = useState<string>('')
+    const [currentUserId, setCurrentUserId] = useState<string>('')
 
     useEffect(() => {
         if (!qsp) {
@@ -26,19 +28,25 @@ export default function MetaPage() {
         const fetchContent = async () => {
             setLoading(true)
             setPageNotFound(false)
+            // get current user first
+            const { data: authData } = await supabase.auth.getUser()
+            const uid = authData?.user?.id || ''
+            setCurrentUserId(uid)
 
             const { data, error } = await supabase
-            .from('meta')
-            .select('content, title')
-            .eq('id', qsp)
-            .single()
+                .from('meta')
+                .select('content, title, user_id')
+                .eq('id', qsp)
+                .single()
 
-            if (error) {
-            console.error(error)
-            setPageNotFound(true)
-            } else if (data) {
-            setContent(data.content)
-            setTitle(data.title)
+            if (error || !data) {
+                if (error) console.error(error)
+                setPageNotFound(true)
+            } else {
+                setOwnerUserId(data.user_id)
+                // Always show data; ownership only impacts edit/delete
+                setContent(data.content)
+                setTitle(data.title)
             }
 
             setLoading(false)
@@ -49,12 +57,13 @@ export default function MetaPage() {
 
     const handleBlur = async () => {
         if (!qsp) return
+        if (!currentUserId || currentUserId !== ownerUserId) return
         setSaving(true)
         const { error } = await supabase
             .from('meta')
             .update({ content })
             .eq('id', qsp)
-
+            .eq('user_id', currentUserId)
         if (error) console.error(error)
         setSaving(false)
     }
@@ -133,31 +142,46 @@ export default function MetaPage() {
                    <span>Back</span>
                </Button>
 
-               <Button
-                   onClick={handleDelete}
-                   variant="destructive"
-                   className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-shadow hover:shadow-md"
-               >
-                   <Trash2 className="h-5 w-5" />
-                   <span>Delete</span>
-               </Button>
+               {currentUserId === ownerUserId && (
+                   <Button
+                       onClick={handleDelete}
+                       variant="destructive"
+                       className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-shadow hover:shadow-md"
+                   >
+                       <Trash2 className="h-5 w-5" />
+                       <span>Delete</span>
+                   </Button>
+               )}
            </div>
           
                 
             <h1 className="font-bold text-2xl">{title}</h1>
-            <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                onBlur={handleBlur}
-                rows={15}
-                style={{
-                    width: '100%',
-                    fontSize: '1rem',
-                    fontFamily: 'monospace',
-                }}
-                placeholder="Edit page content here…"
-            />
-            {saving && <p>Saving…</p>}
+            {currentUserId === ownerUserId ? (
+                <>
+                    <textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        onBlur={handleBlur}
+                        rows={15}
+                        style={{
+                            width: '100%',
+                            fontSize: '1rem',
+                            fontFamily: 'monospace',
+                        }}
+                        placeholder="Edit page content here…"
+                    />
+                    {saving && <p>Saving…</p>}
+                </>
+            ) : (
+                <div className="space-y-2">
+                    <div className="text-sm text-gray-600">Read-only view (you are not the owner).</div>
+                    <div
+                        className="border rounded p-3 whitespace-pre-wrap text-sm font-mono bg-gray-50 min-h-[200px]"
+                    >
+                        {content || <span className="text-gray-400">No content.</span>}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
