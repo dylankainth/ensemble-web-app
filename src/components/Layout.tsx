@@ -22,7 +22,7 @@ const Layout: React.FC = () => {
     }, []);
 
     const handleSignIn = async () => {
-        const { data, error } = await supabase.auth.signInAnonymously();
+        const { error } = await supabase.auth.signInAnonymously();
         if (error) {
             console.error('Error signing in anonymously:', error);
         }

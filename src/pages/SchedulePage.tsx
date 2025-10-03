@@ -118,10 +118,10 @@ export default function SchedulePage() {
                     fetchEvents();
                 }
             )
-            .subscribe((status, err) => {
+            .subscribe(( err) => {
                 if (err) {
                     console.error('Realtime subscription error:', err);
-                    setError(`Realtime subscription failed: ${err.message}`);
+                    setError(`Realtime subscription failed: ${err}`);
                 }
             });
 
