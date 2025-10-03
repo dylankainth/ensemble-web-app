@@ -1,4 +1,4 @@
-import { Map, FileClock, IdCardLanyard } from "lucide-react"
+import { Map, FileClock, IdCardLanyard, Shapes } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
 
@@ -7,7 +7,7 @@ export default function AppBar() {
 
     return (
         <div className="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-            <div className="grid h-full max-w-lg grid-cols-3 mx-auto font-medium">
+            <div className="grid h-full max-w-lg grid-cols-4 mx-auto font-medium">
             <Link
                 to="/"
                 className="inline-flex flex-col items-center justify-center px-5 group"
@@ -71,6 +71,28 @@ export default function AppBar() {
                 } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                 >
                 Badge
+                </span>
+            </Link>
+
+            <Link
+                to="/tonk-playground"
+                className="inline-flex flex-col items-center justify-center px-5 group"
+            >
+                <Shapes
+                className={`w-5 h-5 mb-2 ${
+                    pathname === "/tonk-playground"
+                    ? "text-blue-400"
+                    : "text-gray-500 dark:text-gray-400"
+                } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
+                />
+                <span
+                className={`text-sm ${
+                    pathname === "/tonk-playground"
+                    ? "text-blue-400 font-bold"
+                    : "text-gray-500 dark:text-gray-400"
+                } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
+                >
+                Playground
                 </span>
             </Link>
 

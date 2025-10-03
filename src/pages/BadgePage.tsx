@@ -101,6 +101,7 @@ export default function BadgePage() {
                     />
                 </div>
 
+
                 <Button
                     onClick={handleSend}
                     disabled={!connected || !mac || !url}

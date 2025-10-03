@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import SchedulePage from "@/pages/SchedulePage";
 import MapPage from "@/pages/MapPage";
 import BadgePage from "@/pages/BadgePage";
+import PlaygroundPage from "@/pages/TonkPlayground";
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
         <Route path="/" element={<SchedulePage />} />
         <Route path="/map" element={<MapPage />} />
         <Route path="/badge" element={<BadgePage />} />
-
+        <Route path="/tonk-playground" element={<PlaygroundPage />} />
       </Route>
     </Routes>)
 
