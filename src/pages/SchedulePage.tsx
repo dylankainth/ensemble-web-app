@@ -3,28 +3,28 @@ import { useEffect, useState } from "react";
 
 // Define TypeScript types for our data based on your schema
 type Room = {
-  id: string;
-  name: string;
-  type: 'unconference' | 'booth_area';
-  capacity: number | null;
+    id: string;
+    name: string;
+    type: 'unconference' | 'booth_area';
+    capacity: number | null;
 };
 
 type Track = {
-  id: string;
-  name: string;
-  track_type: 'unconference' | 'booth';
-  rooms: Room | null; // rooms is nested from the query
+    id: string;
+    name: string;
+    track_type: 'unconference' | 'booth';
+    rooms: Room | null; // rooms is nested from the query
 };
 
 type Event = {
-  id: string;
-  title: string;
-  description: string | null;
-  event_type: 'anchor' | 'unconference' | 'booth';
-  start_time: string;
-  end_time: string;
-  facilitator: string | null;
-  tracks: Track | null; // tracks is nested from the query
+    id: string;
+    title: string;
+    description: string | null;
+    event_type: 'anchor' | 'unconference' | 'booth';
+    start_time: string;
+    end_time: string;
+    facilitator: string | null;
+    tracks: Track | null; // tracks is nested from the query
 };
 
 // Group events by time slot
@@ -60,6 +60,10 @@ export default function SchedulePage() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+
+
+
+
         const fetchEvents = async () => {
             setLoading(true);
             // Query events and join related tracks and rooms
@@ -77,7 +81,7 @@ export default function SchedulePage() {
 
             // Group events by start and end times
             const groupedByTime: { [key: string]: Event[] } = {};
-            data.forEach((event: Event) => {
+            data?.forEach((event: Event) => {
                 const key = `${event.start_time}|${event.end_time}`;
                 if (!groupedByTime[key]) {
                     groupedByTime[key] = [];
@@ -94,7 +98,37 @@ export default function SchedulePage() {
             setLoading(false);
         };
 
+        // Initial fetch
         fetchEvents();
+
+
+        // Set up realtime subscription
+        const channel = supabase
+            .channel('events-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+                    schema: 'public',
+                    table: 'events'
+                },
+                (payload) => {
+                    console.log('Realtime change detected:', payload);
+                    // Refetch events when any change occurs
+                    fetchEvents();
+                }
+            )
+            .subscribe((status, err) => {
+                if (err) {
+                    console.error('Realtime subscription error:', err);
+                    setError(`Realtime subscription failed: ${err.message}`);
+                }
+            });
+
+        // Cleanup function to unsubscribe from realtime
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, []);
 
     if (loading) {
@@ -139,4 +173,3 @@ export default function SchedulePage() {
         </div>
     );
 }
-   
