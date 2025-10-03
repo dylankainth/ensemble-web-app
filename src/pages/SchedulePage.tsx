@@ -102,28 +102,18 @@ export default function SchedulePage() {
         fetchEvents();
 
 
-        // Set up realtime subscription
+        // Set up realtime subscription connecting to events table
         const channel = supabase
-            .channel('events-changes')
+            .channel('public:events')
             .on(
                 'postgres_changes',
-                {
-                    event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
-                    schema: 'public',
-                    table: 'events'
-                },
-                (payload) => {
-                    console.log('Realtime change detected:', payload);
-                    // Refetch events when any change occurs
-                    fetchEvents();
+                { event: '*', schema: 'public', table: 'events' },
+                () => {
+                    fetchEvents(); // Re-fetch events on any change
                 }
             )
-            .subscribe(( err) => {
-                if (err) {
-                    console.error('Realtime subscription error:', err);
-                    setError(`Realtime subscription failed: ${err}`);
-                }
-            });
+            .subscribe();   
+            
 
         // Cleanup function to unsubscribe from realtime
         return () => {
