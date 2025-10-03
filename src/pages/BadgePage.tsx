@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
 
 // Fixed list of MAC addresses
 const MAC_ADDRESSES = [
@@ -15,11 +16,23 @@ const MAC_ADDRESSES = [
 const MQTT_BROKER_URL = "wss://srv1.ensemble.rodeo:9001";
 const MQTT_TOPIC = "esp32/nfc";
 
+type MetaPage = {
+    id: string;
+    content: string;
+};
+
 export default function BadgePage() {
-    const [client, setClient] = useState<mqtt.MqttClient | null>(null);
+    const [client, setClient] = useState<MqttClient | null>(null);
     const [connected, setConnected] = useState(false);
     const [mac, setMac] = useState("");
-    const [url, setUrl] = useState("");
+    const [step, setStep] = useState(1);
+    
+    // Step 1 state
+    const [metaPages, setMetaPages] = useState<MetaPage[]>([]);
+    const [selectedPageId, setSelectedPageId] = useState("");
+    const [arbitraryUrl, setArbitraryUrl] = useState("");
+    const [useArbitraryUrl, setUseArbitraryUrl] = useState(false);
+    const [finalUrl, setFinalUrl] = useState("");
 
     useEffect(() => {
         const mqttClient = mqtt.connect(MQTT_BROKER_URL, {
@@ -49,30 +62,212 @@ export default function BadgePage() {
         };
     }, []);
 
+    // Fetch existing meta pages
+    useEffect(() => {
+        const fetchMetaPages = async () => {
+            const { data, error } = await supabase
+                .from('meta')
+                .select('id, content')
+                .order('id', { ascending: true });
+
+            if (error) {
+                console.error('Error fetching meta pages:', error);
+            } else {
+                setMetaPages(data || []);
+            }
+        };
+
+        fetchMetaPages();
+    }, []);
+
+    const handleStep1Next = async () => {
+        let url = "";
+        
+        if (useArbitraryUrl) {
+            url = arbitraryUrl;
+        } else if (selectedPageId) {
+            url = `https://ensemble.rodeo/meta?id=${selectedPageId}`;
+        } else {
+            alert("Please select a page or enter an arbitrary URL");
+            return;
+        }
+        
+        setFinalUrl(url);
+        setStep(2);
+    };
+
     const handleSend = () => {
         if (!client || !connected) {
             alert("MQTT not connected yet");
             return;
         }
-        if (!mac || !url) {
-            alert("Please select a MAC and enter a URL");
+        if (!mac || !finalUrl) {
+            alert("Please select a MAC and complete step 1");
             return;
         }
 
-        const message = `${mac}-${url}`;
+        const message = `${mac}-${finalUrl}`;
         client.publish(MQTT_TOPIC, message, { qos: 1, retain: false });
         alert(`Sent to MQTT: ${message}`);
-        setUrl("");
     };
+
+    const handleBack = () => {
+        setStep(1);
+        setMac("");
+    };
+
+    if (step === 1) {
+        return (
+            <Card className="max-w-md mx-auto mt-12 shadow-lg mx-4">
+                <CardHeader>
+                    <CardTitle>Step 1: Select or Create Page</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Option 1: Select existing page */}
+                    {metaPages.length > 0 && (
+                        <div className="space-y-2">
+                            <Label>Select existing meta page</Label>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {metaPages.map((page) => (
+                                    <div
+                                        key={page.id}
+                                        className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
+                                            selectedPageId === page.id && !useArbitraryUrl
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-300 hover:border-gray-400'
+                                        } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        onClick={() => {
+                                            if (!useArbitraryUrl) {
+                                                setSelectedPageId(page.id);
+                                                setUseArbitraryUrl(false);
+                                            }
+                                        }}
+                                    >
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm">{page.id}</div>
+                                            <div className="text-xs text-gray-500 truncate">
+                                                {page.content ? page.content.substring(0, 50) + (page.content.length > 50 ? '...' : '') : 'Empty page'}
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                           
+                                               window.location.href = `/meta?id=${page.id}`;
+
+                                            }}
+                                            variant="outline"
+                                            size="sm"
+                                            className="ml-2"
+                                            disabled={useArbitraryUrl}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Option 2: Create new page */}
+                    <div className="space-y-2">
+                        <Label>Or create new meta page</Label>
+                        <Button
+                            onClick={async () => {
+
+                                // grab the user's id
+                                const {
+                                    data: { user },
+                                } = await supabase.auth.getUser();
+                                
+                                if (!user) {
+                                    alert('You must be signed in to create a new page.');
+                                    return;
+                                }
+
+                                const { data, error } = await supabase
+                                    .from('meta')
+                                    .insert([{ content: '', user_id: user.id }])
+                                    .select('id')
+                                    .single();
+                                
+                                if (error) {
+                                    alert('Error creating new page: ' + error.message);
+                                    return;
+                                }
+                                
+                                // Refresh the meta pages list
+                                const { data: allPages } = await supabase
+                                    .from('meta')
+                                    .select('id, content')
+                                    .order('id', { ascending: true });
+                                
+                                setMetaPages(allPages || []);
+                                setSelectedPageId(data.id);
+                                setUseArbitraryUrl(false);
+                                alert(`Created page with ID: ${data.id}`);
+                            }}
+                            disabled={useArbitraryUrl}
+                            variant="outline"
+                            className="w-full"
+                        >
+                            Create New Page
+                        </Button>
+                    </div>
+
+                    {/* Option 3: Arbitrary URL */}
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="arbitrary"
+                                checked={useArbitraryUrl}
+                                onChange={(e) => {
+                                    setUseArbitraryUrl(e.target.checked);
+                                    if (e.target.checked) {
+                                        setSelectedPageId("");
+                                    }
+                                }}
+                            />
+                            <Label htmlFor="arbitrary">Use arbitrary URL instead</Label>
+                        </div>
+                        {useArbitraryUrl && (
+                            <Input
+                                type="text"
+                                value={arbitraryUrl}
+                                onChange={(e) => setArbitraryUrl(e.target.value)}
+                                placeholder="https://example.com"
+                            />
+                        )}
+                    </div>
+
+                    <Button
+                        onClick={handleStep1Next}
+                        className="w-full"
+                        disabled={useArbitraryUrl ? !arbitraryUrl : !selectedPageId}
+                    >
+                        Next: Select Device
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card className="max-w-md mx-auto mt-12 shadow-lg">
             <CardHeader>
-                <CardTitle>Send URL to ESP32</CardTitle>
+                <CardTitle>Step 2: Send to Device</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-1">
-                    <Label htmlFor="mac">ESP32 MAC Address</Label>
+                    <Label>Selected URL</Label>
+                    <div className="px-3 py-2 bg-gray-100 rounded text-sm break-all">
+                        {finalUrl}
+                    </div>
+                </div>
+
+                <div className="space-y-1">
+                    <Label htmlFor="mac">Select a flasher</Label>
                     <select
                         id="mac"
                         value={mac}
@@ -84,31 +279,28 @@ export default function BadgePage() {
                         </option>
                         {MAC_ADDRESSES.map((addr) => (
                             <option key={addr} value={addr}>
-                                {addr}
+                                {addr.split(":").slice(-3).join(":")}
                             </option>
                         ))}
                     </select>
                 </div>
 
-                <div className="space-y-1">
-                    <Label htmlFor="url">URL</Label>
-                    <Input
-                        id="url"
-                        type="text"
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="https://example.com"
-                    />
+                <div className="flex space-x-2">
+                    <Button
+                        onClick={handleBack}
+                        variant="outline"
+                        className="flex-1"
+                    >
+                        Back
+                    </Button>
+                    <Button
+                        onClick={handleSend}
+                        disabled={!connected || !mac}
+                        className="flex-1"
+                    >
+                        Send URL
+                    </Button>
                 </div>
-
-
-                <Button
-                    onClick={handleSend}
-                    disabled={!connected || !mac || !url}
-                    className="w-full"
-                >
-                    Send URL
-                </Button>
 
                 {!connected && (
                     <p className="text-sm text-destructive text-center">
