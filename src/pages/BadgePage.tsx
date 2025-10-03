@@ -127,7 +127,7 @@ export default function BadgePage() {
                             <img
                                 src="/20251003_131819.jpg"
                                 alt="NFC Badge"
-                                className="w-full h-32 object-cover rounded-t-lg"
+                                className="w-full h-65 object-cover rounded-t-lg"
                             />
                         </div>
                         <h2 className="text-xl font-bold mb-2">Program Your Lanyard</h2>
@@ -136,7 +136,7 @@ export default function BadgePage() {
                         </p>
                         <Button
                             onClick={() => setStep(2)}
-                            className="w-full"
+                            className="w-full bg-ensemble-purple text-white hover:bg-purple-700"
                         >
                             Get Started
                         </Button>
@@ -280,8 +280,9 @@ export default function BadgePage() {
                             </Button>
                             <Button
                                 onClick={handleStep2Next}
-                                className="flex-1"
+                                className="flex-1 bg-ensemble-purple text-white hover:bg-purple-700"
                                 disabled={useArbitraryUrl ? !arbitraryUrl : !selectedPageId}
+                                
                             >
                                 Next: Select Device
                             </Button>
@@ -337,7 +338,7 @@ export default function BadgePage() {
                         <Button
                             onClick={handleSend}
                             disabled={!connected || !mac}
-                            className="flex-1"
+                            className="flex-1 bg-ensemble-purple text-white hover:bg-purple-700"
                         >
                             Send URL
                         </Button>
