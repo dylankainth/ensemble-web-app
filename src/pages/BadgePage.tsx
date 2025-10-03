@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
+import type { MqttClient } from "mqtt";
 
 // Fixed list of MAC addresses
 const MAC_ADDRESSES = [

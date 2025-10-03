@@ -3,9 +3,11 @@ import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
 import {ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 export default function MetaPage() {
     const [searchParams] = useSearchParams()
+    const navigate = useNavigate()
     const qsp = searchParams.get('id') ?? ''
 
     const [content, setContent] = useState<string>('')

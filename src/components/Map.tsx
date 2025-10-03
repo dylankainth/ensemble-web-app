@@ -1,5 +1,8 @@
 import { UncontrolledReactSVGPanZoom } from 'react-svg-pan-zoom'
 import { useState, useEffect } from 'react'
+import type { Value } from "react-svg-pan-zoom";
+
+
 
 export default function Map() {
   const [viewer, setViewer] = useState<UncontrolledReactSVGPanZoom | null>(null)
@@ -22,8 +25,11 @@ export default function Map() {
       }
       ref={(instance: UncontrolledReactSVGPanZoom | null) => setViewer(instance)}
       onZoom={(e) => {
-        setZoom(e.a)}}
-      
+        const value = e as unknown as Value;
+        setZoom(value.a);
+      }}
+
+     
       background='white'
     >
         
