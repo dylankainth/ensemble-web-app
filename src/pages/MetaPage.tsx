@@ -55,6 +55,40 @@ export default function MetaPage() {
         fetchContent()
     }, [qsp])
 
+    // Realtime subscription: listen for changes to this meta row and update view
+    useEffect(() => {
+        if (!qsp) return
+
+        const channel = supabase
+            .channel(`realtime-meta-${qsp}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'meta',
+                    filter: `id=eq.${qsp}`,
+                },
+                (payload) => {
+                    const newRow = payload.new as { content?: string; title?: string; user_id?: string } | null
+                    if (!newRow) return
+                    // If user is owner and currently saving (blur just triggered), avoid clobbering local typing
+                    if (currentUserId === ownerUserId && saving) return
+                    setContent((prev) => (newRow.content !== undefined && prev !== newRow.content ? newRow.content : prev))
+                    if (newRow.title && newRow.title !== title) setTitle(newRow.title)
+                }
+            )
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    // console.log('Subscribed to realtime meta row', qsp)
+                }
+            })
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [qsp, currentUserId, ownerUserId, saving, title])
+
     const handleBlur = async () => {
         if (!qsp) return
         if (!currentUserId || currentUserId !== ownerUserId) return
