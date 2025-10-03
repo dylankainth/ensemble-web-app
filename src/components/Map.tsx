@@ -17,7 +17,7 @@ export default function Map() {
 
   return (
     <>
- 
+    <p>{zoom}</p>
 
     <UncontrolledReactSVGPanZoom
       width={window.innerWidth}
@@ -29,6 +29,8 @@ export default function Map() {
         const value = e as unknown as Value;
         setZoom(value.a);
       }}
+      onMouseMove={(e) => setZoom(e.scaleFactor)}
+
     
 
      
