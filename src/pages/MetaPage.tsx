@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
-import {ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNavigate } from 'react-router-dom'
 
@@ -32,19 +32,7 @@ export default function MetaPage() {
             .eq('id', qsp)
             .single()
 
-            if (error && error.code === 'PGRST116') {
-            // no row found, insert a new one
-            const { error: insertError } = await supabase
-                .from('meta')
-                .insert([{ id: qsp, content: '' }])
-
-            if (insertError) {
-                console.error(insertError)
-                setPageNotFound(true)
-            } else {
-                setContent('')
-            }
-            } else if (error) {
+            if (error) {
             console.error(error)
             setPageNotFound(true)
             } else if (data) {
@@ -69,6 +57,35 @@ export default function MetaPage() {
         setSaving(false)
     }
 
+    const handleDelete = async () => {
+        if (!qsp) return
+
+        const ok = window.confirm(`Delete page "${qsp}"? This cannot be undone.`)
+        if (!ok) return
+
+        //get supabase user
+        const user = await supabase.auth.getUser()
+        if (!user) {
+            alert('You must be signed in to delete a page.')
+            return
+        }
+
+        const { error } = await supabase
+            .from('meta')
+            .delete()
+            .eq('id', Number(qsp))
+            .eq('user_id', user.data?.user?.id) // ensure user can only delete their own pages
+
+        if (error) {
+            console.error(error)
+            alert('Failed to delete page: ' + error.message)
+            return
+        }
+        
+        // go home after delete
+        navigate('/')
+    }
+
     if (loading) {
         return <p>Loading…</p>
     }
@@ -76,10 +93,16 @@ export default function MetaPage() {
     if (pageNotFound) {
         return (
             <div style={{ padding: '2rem' }}>
-                <Button variant="default" onClick={() => navigate(-1)} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back
+                <Button
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center space-x-2 mb-8 px-4 py-2 text-sm font-medium bg-ensemble-purple rounded-md transition-shadow hover:shadow-md"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                    <span>Back</span>
                 </Button>
+     
+
+
                 <div className="text-center mt-8">
                     <h1 className="text-2xl font-bold text-red-600 mb-4">Page Not Found</h1>
                     <p className="text-gray-600 mb-4">
@@ -99,14 +122,24 @@ export default function MetaPage() {
     return (
         <div style={{ padding: '2rem' }}>
             {/* write a back button that uses react-router-dom to send to /badge, use tailwind */}
-            <button
-                onClick={() => {
-                    window.history.back()
-                }}
-                className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            >
-                &larr; Back
-            </button>
+           <div className="flex items-center justify-between mb-8">
+               <Button
+                   onClick={() => navigate(-1)}
+                   className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-shadow hover:shadow-md bg-ensemble-purple"
+               >
+                   <ArrowLeft className="h-5 w-5" />
+                   <span>Back</span>
+               </Button>
+
+               <Button
+                   onClick={handleDelete}
+                   variant="destructive"
+                   className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-shadow hover:shadow-md"
+               >
+                   <Trash2 className="h-5 w-5" />
+                   <span>Delete</span>
+               </Button>
+           </div>
           
                 
             <h1>Editing Page “{qsp}”</h1>
