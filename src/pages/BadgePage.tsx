@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabaseClient";
 import type { MqttClient } from "mqtt";
+import { Toaster } from "sonner";
+import { toast } from "sonner";
 
 // Fixed list of MAC addresses
 const MAC_ADDRESSES = [
@@ -20,6 +22,7 @@ const MQTT_TOPIC = "esp32/nfc";
 type MetaPage = {
     id: string;
     content: string;
+    title: string;
 };
 
 export default function BadgePage() {
@@ -34,6 +37,11 @@ export default function BadgePage() {
     const [arbitraryUrl, setArbitraryUrl] = useState("");
     const [useArbitraryUrl, setUseArbitraryUrl] = useState(false);
     const [finalUrl, setFinalUrl] = useState("");
+    // Create modal state
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newPageTitle, setNewPageTitle] = useState("");
+    const [creating, setCreating] = useState(false);
+    // using sonner's toast via sonner-client
 
     useEffect(() => {
         const mqttClient = mqtt.connect(MQTT_BROKER_URL, {
@@ -68,7 +76,7 @@ export default function BadgePage() {
         const fetchMetaPages = async () => {
             const { data, error } = await supabase
                 .from('meta')
-                .select('id, content')
+                .select('id, content, title')
                 .order('id', { ascending: true });
 
             if (error) {
@@ -109,7 +117,7 @@ export default function BadgePage() {
 
         const message = `${mac}-${finalUrl}`;
         client.publish(MQTT_TOPIC, message, { qos: 1, retain: false });
-        alert(`Sent to MQTT: ${message}`);
+        toast('Sent to device');
     };
 
     const handleBackToStep2 = () => {
@@ -121,6 +129,7 @@ export default function BadgePage() {
     if (step === 1) {
         return (
             <div className="max-w-md mx-auto mt-12 px-4">
+                <Toaster />
                 <Card className="shadow-lg">
                     <CardContent className="p-6 text-center">
                         <div className="mb-4 -mx-6 -mt-12 overflow-hidden">
@@ -150,6 +159,70 @@ export default function BadgePage() {
     if (step === 2) {
         return (
             <div className="max-w-md mx-auto mt-12 px-4">
+                <Toaster />
+                {/* Create modal */}
+                {showCreateModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+                            <h3 className="text-lg font-semibold mb-2">Create new page</h3>
+                            <p className="text-sm text-gray-600 mb-4">Enter a title for your new page. </p>
+                            <Input
+                                value={newPageTitle}
+                                onChange={(e) => setNewPageTitle(e.target.value)}
+                                placeholder="Page title"
+                                className="mb-4"
+                            />
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+                                <Button
+                                    onClick={async () => {
+                                        if (!newPageTitle.trim()) {
+                                            alert('Please enter a title');
+                                            return;
+                                        }
+                                        setCreating(true);
+                                        const {
+                                            data: { user },
+                                        } = await supabase.auth.getUser();
+
+                                        if (!user) {
+                                            alert('You must be signed in to create a new page');
+                                            setCreating(false);
+                                            return;
+                                        }
+
+                                        const { data, error } = await supabase
+                                            .from('meta')
+                                            .insert([{ content: '', user_id: user.id, title: newPageTitle}])
+                                            .select('id')
+                                            .single();
+
+                                        if (error) {
+                                            alert('Error creating page: ' + error.message);
+                                            setCreating(false);
+                                            return;
+                                        }
+
+                                        const { data: allPages } = await supabase
+                                            .from('meta')
+                                            .select('id, content, title')
+                                            .order('id', { ascending: true });
+
+                                        setMetaPages(allPages || []);
+                                        setSelectedPageId(data.id);
+                                        setUseArbitraryUrl(false);
+                                        setShowCreateModal(false);
+                                        setNewPageTitle('');
+                                        setCreating(false);
+                                    }}
+                                    className="bg-ensemble-purple text-white"
+                                >
+                                    {creating ? 'Creating…' : 'Create'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 <Card className="shadow-lg">
                     <CardHeader>
                         <CardTitle>Step 1: Select or Create Page</CardTitle>
@@ -176,7 +249,7 @@ export default function BadgePage() {
                                             }}
                                         >
                                             <div className="flex-1">
-                                                <div className="font-medium text-sm">{page.id}</div>
+                                                <div className="font-medium text-sm">{page.title}</div>
                                                 <div className="text-xs text-gray-500 truncate">
                                                     {page.content ? page.content.substring(0, 50) + (page.content.length > 50 ? '...' : '') : 'Empty page'}
                                                 </div>
@@ -203,39 +276,7 @@ export default function BadgePage() {
                         <div className="space-y-2">
                             <Label>Or create new page</Label>
                             <Button
-                                onClick={async () => {
-                                    // grab the user's id
-                                    const {
-                                        data: { user },
-                                    } = await supabase.auth.getUser();
-                                    
-                                    if (!user) {
-                                        alert('You must be signed in to create a new page.');
-                                        return;
-                                    }
-
-                                    const { data, error } = await supabase
-                                        .from('meta')
-                                        .insert([{ content: '', user_id: user.id }])
-                                        .select('id')
-                                        .single();
-                                    
-                                    if (error) {
-                                        alert('Error creating new page: ' + error.message);
-                                        return;
-                                    }
-                                    
-                                    // Refresh the meta pages list
-                                    const { data: allPages } = await supabase
-                                        .from('meta')
-                                        .select('id, content')
-                                        .order('id', { ascending: true });
-                                    
-                                    setMetaPages(allPages || []);
-                                    setSelectedPageId(data.id);
-                                    setUseArbitraryUrl(false);
-                                    alert(`Created page with ID: ${data.id}`);
-                                }}
+                                onClick={() => setShowCreateModal(true)}
                                 disabled={useArbitraryUrl}
                                 variant="outline"
                                 className="w-full"
@@ -296,6 +337,7 @@ export default function BadgePage() {
     // Stage 3: Send to Device
     return (
         <div className="max-w-md mx-auto mt-12 px-4">
+            <Toaster />
             <Card className="shadow-lg">
                 <CardHeader>
                     <CardTitle>Step 2: Send to Device</CardTitle>

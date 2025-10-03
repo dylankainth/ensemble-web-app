@@ -39,13 +39,21 @@ const Layout: React.FC = () => {
 
             <div className="pb-16">
                 {!session ? (
-                    <div className="flex justify-center p-4">
-                        <button
-                            onClick={handleSignIn}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        >
-                            Sign In Anonymously
-                        </button>
+                    <div className="flex items-center justify-center min-h-[calc(100vh-15rem)] bg-gray-50 dark:bg-gray-900 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+                            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+                                Welcome to Ensemble
+                            </h1>
+                            <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                                Saddle up.
+                            </p>
+                            <button
+                                onClick={handleSignIn}
+                                className="w-full px-6 py-3 bg-gradient-to-r from-ensemble-orange to-orange-500 hover:from-orange-500 hover:to-ensemble-orange text-white font-semibold rounded-md shadow transition-all duration-300"
+                            >
+                                Get Started
+                            </button>
+                        </div>
                     </div>
                 ) : (<Outlet />)}
 

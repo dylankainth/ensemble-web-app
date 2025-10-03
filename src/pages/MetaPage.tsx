@@ -9,6 +9,7 @@ export default function MetaPage() {
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
     const qsp = searchParams.get('id') ?? ''
+    const [title, setTitle] = useState<string>('')
 
     const [content, setContent] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true)
@@ -28,7 +29,7 @@ export default function MetaPage() {
 
             const { data, error } = await supabase
             .from('meta')
-            .select('content')
+            .select('content, title')
             .eq('id', qsp)
             .single()
 
@@ -37,6 +38,7 @@ export default function MetaPage() {
             setPageNotFound(true)
             } else if (data) {
             setContent(data.content)
+            setTitle(data.title)
             }
 
             setLoading(false)
@@ -142,7 +144,7 @@ export default function MetaPage() {
            </div>
           
                 
-            <h1>Editing Page “{qsp}”</h1>
+            <h1 className="font-bold text-2xl">{title}</h1>
             <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
