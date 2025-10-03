@@ -113,7 +113,7 @@ export default function SchedulePage() {
                 }
             )
             .subscribe();   
-            
+
 
         // Cleanup function to unsubscribe from realtime
         return () => {
@@ -141,8 +141,13 @@ export default function SchedulePage() {
                         </div>
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {slot.events.map(event => (
-                                <div key={event.id} className={`p-4 rounded-lg border-l-4 ${getEventTypeColor(event.event_type)}`}>
-                                    <h2 className="font-bold text-xl">{event.title}</h2>
+                                <a
+                                    key={event.id}
+                                    href={`/item?id=${event.id}`}
+                                    aria-label={`View details for ${event.title}`}
+                                    className={`block p-4 rounded-lg border-l-4 ${getEventTypeColor(event.event_type)} transition shadow-sm hover:shadow-md focus:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer`}
+                                >
+                                    <h2 className="font-bold text-xl mb-1 line-clamp-2">{event.title}</h2>
                                     {event.tracks && (
                                         <p className="text-sm text-gray-600">
                                             {event.tracks.rooms?.name || event.tracks.name}
@@ -153,8 +158,12 @@ export default function SchedulePage() {
                                             Facilitated by: {event.facilitator}
                                         </p>
                                     )}
-                                    <p className="text-xs text-gray-500 mt-1">{event.event_type}</p>
-                                </div>
+                                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                                        <span>{event.event_type}</span>
+                                        <span className="text-gray-400">•</span>
+                                        <span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+                                    </p>
+                                </a>
                             ))}
                         </div>
                     </div>
