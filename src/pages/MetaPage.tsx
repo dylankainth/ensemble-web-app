@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
+import {ArrowLeft } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export default function MetaPage() {
     const [searchParams] = useSearchParams()
@@ -9,11 +11,18 @@ export default function MetaPage() {
     const [content, setContent] = useState<string>('')
     const [loading, setLoading] = useState<boolean>(true)
     const [saving, setSaving] = useState<boolean>(false)
+    const [pageNotFound, setPageNotFound] = useState<boolean>(false)
 
     useEffect(() => {
-        if (!qsp) return
+        if (!qsp) {
+            setPageNotFound(true)
+            setLoading(false)
+            return
+        }
+        
         const fetchContent = async () => {
             setLoading(true)
+            setPageNotFound(false)
 
             const { data, error } = await supabase
             .from('meta')
@@ -29,11 +38,13 @@ export default function MetaPage() {
 
             if (insertError) {
                 console.error(insertError)
+                setPageNotFound(true)
             } else {
                 setContent('')
             }
             } else if (error) {
             console.error(error)
+            setPageNotFound(true)
             } else if (data) {
             setContent(data.content)
             }
@@ -56,8 +67,31 @@ export default function MetaPage() {
         setSaving(false)
     }
 
-    if (loading || !qsp) {
+    if (loading) {
         return <p>Loading…</p>
+    }
+
+    if (pageNotFound) {
+        return (
+            <div style={{ padding: '2rem' }}>
+                <Button variant="default" onClick={() => navigate(-1)} className="mb-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
+                <div className="text-center mt-8">
+                    <h1 className="text-2xl font-bold text-red-600 mb-4">Page Not Found</h1>
+                    <p className="text-gray-600 mb-4">
+                        {!qsp 
+                            ? "No page ID was provided in the URL." 
+                            : `No page found with ID: "${qsp}"`
+                        }
+                    </p>
+                    <p className="text-sm text-gray-500">
+                        Please check the URL or go back to select a valid page.
+                    </p>
+                </div>
+            </div>
+        )
     }
 
     return (

@@ -80,7 +80,7 @@ export default function BadgePage() {
         fetchMetaPages();
     }, []);
 
-    const handleStep1Next = async () => {
+    const handleStep2Next = async () => {
         let url = "";
         
         if (useArbitraryUrl) {
@@ -93,7 +93,7 @@ export default function BadgePage() {
         }
         
         setFinalUrl(url);
-        setStep(2);
+        setStep(3);
     };
 
     const handleSend = () => {
@@ -111,203 +111,244 @@ export default function BadgePage() {
         alert(`Sent to MQTT: ${message}`);
     };
 
-    const handleBack = () => {
-        setStep(1);
+    const handleBackToStep2 = () => {
+        setStep(2);
         setMac("");
     };
 
+    // Stage 1: Introduction
     if (step === 1) {
         return (
-            <Card className="max-w-md mx-auto mt-12 shadow-lg mx-4">
-                <CardHeader>
-                    <CardTitle>Step 1: Select or Create Page</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {/* Option 1: Select existing page */}
-                    {metaPages.length > 0 && (
-                        <div className="space-y-2">
-                            <Label>Select existing meta page</Label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                                {metaPages.map((page) => (
-                                    <div
-                                        key={page.id}
-                                        className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
-                                            selectedPageId === page.id && !useArbitraryUrl
-                                                ? 'border-blue-500 bg-blue-50'
-                                                : 'border-gray-300 hover:border-gray-400'
-                                        } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => {
-                                            if (!useArbitraryUrl) {
-                                                setSelectedPageId(page.id);
-                                                setUseArbitraryUrl(false);
-                                            }
-                                        }}
-                                    >
-                                        <div className="flex-1">
-                                            <div className="font-medium text-sm">{page.id}</div>
-                                            <div className="text-xs text-gray-500 truncate">
-                                                {page.content ? page.content.substring(0, 50) + (page.content.length > 50 ? '...' : '') : 'Empty page'}
-                                            </div>
-                                        </div>
-                                        <Button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                           
-                                               window.location.href = `/meta?id=${page.id}`;
-
-                                            }}
-                                            variant="outline"
-                                            size="sm"
-                                            className="ml-2"
-                                            disabled={useArbitraryUrl}
-                                        >
-                                            Edit
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
+            <div className="max-w-md mx-auto mt-12 px-4">
+                <Card className="shadow-lg">
+                    <CardContent className="p-6 text-center">
+                        <div className="mb-4 -mx-6 -mt-12 overflow-hidden">
+                            <img
+                                src="/20251003_131819.jpg"
+                                alt="NFC Badge"
+                                className="w-full h-32 object-cover rounded-t-lg"
+                            />
                         </div>
-                    )}
-
-                    {/* Option 2: Create new page */}
-                    <div className="space-y-2">
-                        <Label>Or create new meta page</Label>
+                        <h2 className="text-xl font-bold mb-2">Program Your Lanyard</h2>
+                        <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                            Create or select a web page to program onto your lanyard. <br /> <br /> When someone taps your badge with their phone, they'll be taken directly to your page.
+                        </p>
                         <Button
-                            onClick={async () => {
-
-                                // grab the user's id
-                                const {
-                                    data: { user },
-                                } = await supabase.auth.getUser();
-                                
-                                if (!user) {
-                                    alert('You must be signed in to create a new page.');
-                                    return;
-                                }
-
-                                const { data, error } = await supabase
-                                    .from('meta')
-                                    .insert([{ content: '', user_id: user.id }])
-                                    .select('id')
-                                    .single();
-                                
-                                if (error) {
-                                    alert('Error creating new page: ' + error.message);
-                                    return;
-                                }
-                                
-                                // Refresh the meta pages list
-                                const { data: allPages } = await supabase
-                                    .from('meta')
-                                    .select('id, content')
-                                    .order('id', { ascending: true });
-                                
-                                setMetaPages(allPages || []);
-                                setSelectedPageId(data.id);
-                                setUseArbitraryUrl(false);
-                                alert(`Created page with ID: ${data.id}`);
-                            }}
-                            disabled={useArbitraryUrl}
-                            variant="outline"
+                            onClick={() => setStep(2)}
                             className="w-full"
                         >
-                            Create New Page
+                            Get Started
                         </Button>
-                    </div>
-
-                    {/* Option 3: Arbitrary URL */}
-                    <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                id="arbitrary"
-                                checked={useArbitraryUrl}
-                                onChange={(e) => {
-                                    setUseArbitraryUrl(e.target.checked);
-                                    if (e.target.checked) {
-                                        setSelectedPageId("");
-                                    }
-                                }}
-                            />
-                            <Label htmlFor="arbitrary">Use arbitrary URL instead</Label>
-                        </div>
-                        {useArbitraryUrl && (
-                            <Input
-                                type="text"
-                                value={arbitraryUrl}
-                                onChange={(e) => setArbitraryUrl(e.target.value)}
-                                placeholder="https://example.com"
-                            />
-                        )}
-                    </div>
-
-                    <Button
-                        onClick={handleStep1Next}
-                        className="w-full"
-                        disabled={useArbitraryUrl ? !arbitraryUrl : !selectedPageId}
-                    >
-                        Next: Select Device
-                    </Button>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+            </div>
         );
     }
 
+    // Stage 2: Select or Create Page
+    if (step === 2) {
+        return (
+            <div className="max-w-md mx-auto mt-12 px-4">
+                <Card className="shadow-lg">
+                    <CardHeader>
+                        <CardTitle>Step 1: Select or Create Page</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {/* Option 1: Select existing page */}
+                        {metaPages.length > 0 && (
+                            <div className="space-y-2">
+                                <Label>Select existing page</Label>
+                                <div className="space-y-2 max-h-48 overflow-y-auto">
+                                    {metaPages.map((page) => (
+                                        <div
+                                            key={page.id}
+                                            className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
+                                                selectedPageId === page.id && !useArbitraryUrl
+                                                    ? 'border-blue-500 bg-blue-50'
+                                                    : 'border-gray-300 hover:border-gray-400'
+                                            } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            onClick={() => {
+                                                if (!useArbitraryUrl) {
+                                                    setSelectedPageId(page.id);
+                                                    setUseArbitraryUrl(false);
+                                                }
+                                            }}
+                                        >
+                                            <div className="flex-1">
+                                                <div className="font-medium text-sm">{page.id}</div>
+                                                <div className="text-xs text-gray-500 truncate">
+                                                    {page.content ? page.content.substring(0, 50) + (page.content.length > 50 ? '...' : '') : 'Empty page'}
+                                                </div>
+                                            </div>
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    window.location.href = `/meta?id=${page.id}`;
+                                                }}
+                                                variant="outline"
+                                                size="sm"
+                                                className="ml-2"
+                                                disabled={useArbitraryUrl}
+                                            >
+                                                Edit
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Option 2: Create new page */}
+                        <div className="space-y-2">
+                            <Label>Or create new page</Label>
+                            <Button
+                                onClick={async () => {
+                                    // grab the user's id
+                                    const {
+                                        data: { user },
+                                    } = await supabase.auth.getUser();
+                                    
+                                    if (!user) {
+                                        alert('You must be signed in to create a new page.');
+                                        return;
+                                    }
+
+                                    const { data, error } = await supabase
+                                        .from('meta')
+                                        .insert([{ content: '', user_id: user.id }])
+                                        .select('id')
+                                        .single();
+                                    
+                                    if (error) {
+                                        alert('Error creating new page: ' + error.message);
+                                        return;
+                                    }
+                                    
+                                    // Refresh the meta pages list
+                                    const { data: allPages } = await supabase
+                                        .from('meta')
+                                        .select('id, content')
+                                        .order('id', { ascending: true });
+                                    
+                                    setMetaPages(allPages || []);
+                                    setSelectedPageId(data.id);
+                                    setUseArbitraryUrl(false);
+                                    alert(`Created page with ID: ${data.id}`);
+                                }}
+                                disabled={useArbitraryUrl}
+                                variant="outline"
+                                className="w-full"
+                            >
+                                Create New Page
+                            </Button>
+                        </div>
+
+                        {/* Option 3: Arbitrary URL */}
+                        <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="arbitrary"
+                                    checked={useArbitraryUrl}
+                                    onChange={(e) => {
+                                        setUseArbitraryUrl(e.target.checked);
+                                        if (e.target.checked) {
+                                            setSelectedPageId("");
+                                        }
+                                    }}
+                                />
+                                <Label htmlFor="arbitrary">Or use an arbitrary URL instead</Label>
+                            </div>
+                            {useArbitraryUrl && (
+                                <Input
+                                    type="text"
+                                    value={arbitraryUrl}
+                                    onChange={(e) => setArbitraryUrl(e.target.value)}
+                                    placeholder="https://example.com"
+                                />
+                            )}
+                        </div>
+
+                        <div className="flex space-x-2">
+                            <Button
+                                onClick={() => setStep(1)}
+                                variant="outline"
+                                className="flex-1"
+                            >
+                                Back
+                            </Button>
+                            <Button
+                                onClick={handleStep2Next}
+                                className="flex-1"
+                                disabled={useArbitraryUrl ? !arbitraryUrl : !selectedPageId}
+                            >
+                                Next: Select Device
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    // Stage 3: Send to Device
     return (
-        <Card className="max-w-md mx-auto mt-12 shadow-lg">
-            <CardHeader>
-                <CardTitle>Step 2: Send to Device</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-1">
-                    <Label>Selected URL</Label>
-                    <div className="px-3 py-2 bg-gray-100 rounded text-sm break-all">
-                        {finalUrl}
+        <div className="max-w-md mx-auto mt-12 px-4">
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle>Step 2: Send to Device</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-1">
+                        <Label>Selected URL</Label>
+                        <div className="px-3 py-2 bg-gray-100 rounded text-sm break-all">
+                            {finalUrl}
+                        </div>
                     </div>
-                </div>
 
-                <div className="space-y-1">
-                    <Label htmlFor="mac">Select a flasher</Label>
-                    <select
-                        id="mac"
-                        value={mac}
-                        onChange={(e) => setMac(e.target.value)}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded"
-                    >
-                        <option value="" disabled>
-                            Select MAC address
-                        </option>
-                        {MAC_ADDRESSES.map((addr) => (
-                            <option key={addr} value={addr}>
-                                {addr.split(":").slice(-3).join(":")}
+                    <div className="space-y-1">
+                        <Label htmlFor="mac">Select a flasher</Label>
+                        <select
+                            id="mac"
+                            value={mac}
+                            onChange={(e) => setMac(e.target.value)}
+                            className="block w-full px-3 py-2 border border-gray-300 rounded"
+                        >
+                            <option value="" disabled>
+                                Select MAC address
                             </option>
-                        ))}
-                    </select>
-                </div>
+                            {MAC_ADDRESSES.map((addr) => (
+                                <option key={addr} value={addr}>
+                                    {addr.split(":").slice(-3).join(":")}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
-                <div className="flex space-x-2">
-                    <Button
-                        onClick={handleBack}
-                        variant="outline"
-                        className="flex-1"
-                    >
-                        Back
-                    </Button>
-                    <Button
-                        onClick={handleSend}
-                        disabled={!connected || !mac}
-                        className="flex-1"
-                    >
-                        Send URL
-                    </Button>
-                </div>
+                    <div className="flex space-x-2">
+                        <Button
+                            onClick={handleBackToStep2}
+                            variant="outline"
+                            className="flex-1"
+                        >
+                            Back
+                        </Button>
+                        <Button
+                            onClick={handleSend}
+                            disabled={!connected || !mac}
+                            className="flex-1"
+                        >
+                            Send URL
+                        </Button>
+                    </div>
 
-                {!connected && (
-                    <p className="text-sm text-destructive text-center">
-                        Connecting to MQTT broker...
-                    </p>
-                )}
-            </CardContent>
-        </Card>
+                    {!connected && (
+                        <p className="text-sm text-destructive text-center">
+                            Connecting to MQTT broker...
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
     );
 }
