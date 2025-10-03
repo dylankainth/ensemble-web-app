@@ -121,6 +121,7 @@ export default function ItemPage() {
 	}
 
 	const roomName = event.tracks?.rooms?.name || undefined
+	const roomId = event.tracks?.rooms?.id || undefined
 	const trackName = event.tracks?.name || undefined
 
 	return (
@@ -140,11 +141,17 @@ export default function ItemPage() {
 			<header>
 				<h1 className="text-3xl font-bold mb-2">{event.title}</h1>
 				<div className="text-sm text-gray-600 flex flex-wrap gap-x-4 gap-y-1">
-					<span>
-						{formatTime(event.start_time)} – {formatTime(event.end_time)}
-					</span>
-					{roomName && <span>Room: {roomName}</span>}
-					{trackName && !roomName && <span>Track: {trackName}</span>}
+					<span>{formatTime(event.start_time)} – {formatTime(event.end_time)}</span>
+					{roomName && roomId && (
+						<a
+							href={`/room?id=${roomId}`}
+							className="underline decoration-dotted underline-offset-2 text-ensemble-purple hover:text-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 rounded px-0.5"
+							aria-label={`View schedule for room ${roomName}`}
+						>
+							Room: {roomName}
+						</a>
+					)}
+					{!roomName && trackName && <span>Track: {trackName}</span>}
 					{event.facilitator && <span>Facilitator: {event.facilitator}</span>}
 				</div>
 			</header>

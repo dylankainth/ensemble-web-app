@@ -6,6 +6,7 @@ import BadgePage from "@/pages/BadgePage";
 import PlaygroundPage from "@/pages/TonkPlayground";
 import MetaPage from "@/pages/MetaPage";
 import ItemPage from "@/pages/ItemPage";
+import RoomPage from "@/pages/RoomPage";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/tonk-playground" element={<PlaygroundPage />} />
         <Route path="/meta" element={<MetaPage />} />
         <Route path="/item" element={<ItemPage />} />
+        <Route path="/room" element={<RoomPage />} />
       </Route>
     </Routes>)
 
