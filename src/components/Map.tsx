@@ -23,11 +23,13 @@ export default function Map() {
       width={window.innerWidth}
       height={window.innerHeight - 230
       }
+      tool={'auto'}
       ref={(instance: UncontrolledReactSVGPanZoom | null) => setViewer(instance)}
       onZoom={(e) => {
         const value = e as unknown as Value;
         setZoom(value.a);
       }}
+    
 
      
       background='white'
