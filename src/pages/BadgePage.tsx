@@ -75,15 +75,24 @@ export default function BadgePage() {
     // Fetch existing meta pages
     useEffect(() => {
         const fetchMetaPages = async () => {
-            const { data, error } = await supabase
-                .from('meta')
-                .select('id, content, title')
-                .order('id', { ascending: true });
+            const {
+                data: { user },
+            } = await supabase.auth.getUser();
 
-            if (error) {
-                console.error('Error fetching meta pages:', error);
+            if (user) {
+                const { data, error } = await supabase
+                    .from('meta')
+                    .select('id, content, title')
+                    .eq('user_id', user.id)
+                    .order('id', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching meta pages:', error);
+                } else {
+                    setMetaPages(data || []);
+                }
             } else {
-                setMetaPages(data || []);
+                setMetaPages([]);
             }
         };
 
@@ -207,7 +216,9 @@ export default function BadgePage() {
                                         const { data: allPages } = await supabase
                                             .from('meta')
                                             .select('id, content, title')
+                                            .eq('user_id', user.id)
                                             .order('id', { ascending: true });
+
 
                                         setMetaPages(allPages || []);
                                         setSelectedPageId(data.id);
