@@ -1,5 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 // Define TypeScript types for our data based on your schema
 type Room = {
@@ -112,7 +114,7 @@ export default function SchedulePage() {
                     fetchEvents(); // Re-fetch events on any change
                 }
             )
-            .subscribe();   
+            .subscribe();
 
 
         // Cleanup function to unsubscribe from realtime
@@ -168,6 +170,16 @@ export default function SchedulePage() {
                         </div>
                     </div>
                 ))}
+            </div>
+
+            <div className="mt-8 flex justify-center">
+                <Button
+                    onClick={() => window.open('https://forms.gle/u4QJ3GZJEhV9wmrz7', '_blank')}
+                    className="bg-ensemble-green hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                    <Plus className="h-5 w-5" />
+                    Add Your Own Unconference
+                </Button>
             </div>
         </div>
     );
