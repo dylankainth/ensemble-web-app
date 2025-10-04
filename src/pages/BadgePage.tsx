@@ -14,6 +14,8 @@ import { toast } from "sonner";
 // Fixed list of MAC addresses
 const MAC_ADDRESSES = [
     "84:1F:E8:16:AF:08",
+    "CC:DB:A7:14:F5:FC",
+    "84:1F:E8:17:49:88"
 
 ];
 
