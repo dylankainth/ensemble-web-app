@@ -14,7 +14,7 @@ import { toast } from "sonner";
 // Fixed list of MAC addresses
 const MAC_ADDRESSES = [
     "84:1F:E8:16:AF:08",
-   
+
 ];
 
 const MQTT_BROKER_URL = "wss://srv1.ensemble.rodeo:9001";
@@ -31,7 +31,7 @@ export default function BadgePage() {
     const [connected, setConnected] = useState(false);
     const [mac, setMac] = useState("");
     const [step, setStep] = useState(1);
-    
+
     // Step 1 state
     const [metaPages, setMetaPages] = useState<MetaPage[]>([]);
     const [selectedPageId, setSelectedPageId] = useState("");
@@ -101,7 +101,7 @@ export default function BadgePage() {
 
     const handleStep2Next = async () => {
         let url = "";
-        
+
         if (useArbitraryUrl) {
             url = arbitraryUrl;
         } else if (selectedPageId) {
@@ -110,7 +110,7 @@ export default function BadgePage() {
             alert("Please select a page or enter an arbitrary URL");
             return;
         }
-        
+
         setFinalUrl(url);
         setStep(3);
     };
@@ -151,8 +151,11 @@ export default function BadgePage() {
                         </div>
                         <h2 className="text-xl font-bold mb-2">Program Your Lanyard</h2>
                         <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                            Create or select a web page to program onto your lanyard. <br /> <br /> When someone taps your badge with their phone, they'll be taken directly to your page.
-                        </p>
+                            customise your card!
+
+                            earlier, you stuck an nfc sticker onto your card that lets anyone who taps it with their phone be redirected to your page. if you haven't collected one, please do get one at the check-in tables!
+
+                            now, you get to customise the landing page of your nfc sticker. you're welcome and sincerely encouraged to put down anything and everything you have been working on, tinkering with or thinking about. really just stuff you’d love to have a conversation about!                        </p>
                         <Button
                             onClick={() => setStep(2)}
                             className="w-full bg-ensemble-purple text-white hover:bg-purple-700"
@@ -203,7 +206,7 @@ export default function BadgePage() {
 
                                         const { data, error } = await supabase
                                             .from('meta')
-                                            .insert([{ content: '', user_id: user.id, title: newPageTitle}])
+                                            .insert([{ content: '', user_id: user.id, title: newPageTitle }])
                                             .select('id')
                                             .single();
 
@@ -248,11 +251,10 @@ export default function BadgePage() {
                                     {metaPages.map((page) => (
                                         <div
                                             key={page.id}
-                                            className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
-                                                selectedPageId === page.id && !useArbitraryUrl
+                                            className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${selectedPageId === page.id && !useArbitraryUrl
                                                     ? 'border-blue-500 bg-blue-50'
                                                     : 'border-gray-300 hover:border-gray-400'
-                                            } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             onClick={() => {
                                                 if (!useArbitraryUrl) {
                                                     setSelectedPageId(page.id);
@@ -335,7 +337,7 @@ export default function BadgePage() {
                                 onClick={handleStep2Next}
                                 className="flex-1 bg-ensemble-purple text-white hover:bg-purple-700"
                                 disabled={useArbitraryUrl ? !arbitraryUrl : !selectedPageId}
-                                
+
                             >
                                 Next: Select Device
                             </Button>
@@ -368,11 +370,10 @@ export default function BadgePage() {
                             {MAC_ADDRESSES.map((addr) => (
                                 <div
                                     key={addr}
-                                    className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${
-                                        mac === addr
+                                    className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${mac === addr
                                             ? 'border-blue-500 bg-blue-50'
                                             : 'border-gray-300 hover:border-gray-400'
-                                    }`}
+                                        }`}
                                     onClick={() => setMac(addr)}
                                 >
                                     <div className="font-medium text-sm">{addr.split(":").slice(-3).join(":")}</div>
