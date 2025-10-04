@@ -105,7 +105,7 @@ export default function BadgePage() {
         if (useArbitraryUrl) {
             url = arbitraryUrl;
         } else if (selectedPageId) {
-            url = `https://ensemble.rodeo/meta?id=${selectedPageId}`;
+            url = `https://app.ensemble.rodeo/meta?id=${selectedPageId}`;
         } else {
             alert("Please select a page or enter an arbitrary URL");
             return;
@@ -252,8 +252,8 @@ export default function BadgePage() {
                                         <div
                                             key={page.id}
                                             className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${selectedPageId === page.id && !useArbitraryUrl
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-300 hover:border-gray-400'
+                                                ? 'border-blue-500 bg-blue-50'
+                                                : 'border-gray-300 hover:border-gray-400'
                                                 } ${useArbitraryUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             onClick={() => {
                                                 if (!useArbitraryUrl) {
@@ -371,8 +371,8 @@ export default function BadgePage() {
                                 <div
                                     key={addr}
                                     className={`p-3 border rounded-lg cursor-pointer transition-colors flex items-center justify-between ${mac === addr
-                                            ? 'border-blue-500 bg-blue-50'
-                                            : 'border-gray-300 hover:border-gray-400'
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-300 hover:border-gray-400'
                                         }`}
                                     onClick={() => setMac(addr)}
                                 >
