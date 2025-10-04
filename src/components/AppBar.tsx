@@ -1,4 +1,4 @@
-import { Map, FileClock, IdCardLanyard, Shapes } from "lucide-react"
+import { Map, FileClock, IdCardLanyard } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 
 
@@ -14,14 +14,14 @@ export default function AppBar() {
                 >
                     <FileClock
                         className={`w-5 h-5 mb-2 ${pathname === "/"
-                                ? "text-blue-400"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     />
                     <span
                         className={`text-sm ${pathname === "/"
-                                ? "text-blue-400 font-bold"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400 font-bold"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     >
                         Schedule
@@ -34,14 +34,14 @@ export default function AppBar() {
                 >
                     <Map
                         className={`w-5 h-5 mb-2 ${pathname === "/map"
-                                ? "text-blue-400"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     />
                     <span
                         className={`text-sm ${pathname === "/map"
-                                ? "text-blue-400 font-bold"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400 font-bold"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     >
                         Map
@@ -54,41 +54,21 @@ export default function AppBar() {
                 >
                     <IdCardLanyard
                         className={`w-5 h-5 mb-2 ${pathname === "/badge"
-                                ? "text-blue-400"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     />
                     <span
                         className={`text-sm ${pathname === "/badge"
-                                ? "text-blue-400 font-bold"
-                                : "text-gray-500 dark:text-gray-400"
+                            ? "text-blue-400 font-bold"
+                            : "text-gray-500 dark:text-gray-400"
                             } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
                     >
                         Lanyard
                     </span>
                 </Link>
 
-                {/* <Link
-                to="/tonk-playground"
-                className="inline-flex flex-col items-center justify-center px-5 group"
-            >
-                <Shapes
-                className={`w-5 h-5 mb-2 ${
-                    pathname === "/tonk-playground"
-                    ? "text-blue-400"
-                    : "text-gray-500 dark:text-gray-400"
-                } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
-                />
-                <span
-                className={`text-sm ${
-                    pathname === "/tonk-playground"
-                    ? "text-blue-400 font-bold"
-                    : "text-gray-500 dark:text-gray-400"
-                } group-hover:text-blue-600 dark:group-hover:text-blue-500`}
-                >
-                Playground
-                </span>
-            </Link> */}
+
 
             </div>
         </div>
